@@ -6,8 +6,8 @@ k3s_version: v1.30.2+k3s1
 # - pwgen -s 64 1
 # You can use ansible-vault to encrypt this value / keep it secret.
 token: "SECRET"
-api_endpoint: "${API_ENDPOINT}"
-api_port: 6443
+# api_endpoint: is mandatory but specified in extra vars because we can't know it before (ex: using LB dns)
+# api_port: is mandatory but specified in extra vars because we can't know it before (ex: using LB dns)
 extra_server_args: "--node-external-ip {{ inventory_hostname }} --flannel-iface enp0s8 --node-taint CriticalAddonsOnly=true:NoExecute"
 extra_agent_args: "--node-external-ip {{ inventory_hostname }} --flannel-iface enp0s8"
 k3s_server_location: "/var/lib/rancher/k3s"
