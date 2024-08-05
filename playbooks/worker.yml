@@ -6,6 +6,7 @@
   tasks:
     - name: Install K3s
       import_tasks: "./tasks/install_k3s.yml"
+      tags: always
     - name: Init K3s worker
       import_tasks: "./tasks/worker_node.yml"
       tags: worker_node

@@ -6,6 +6,7 @@
   tasks:
     - name: Install K3s
       import_tasks: "./tasks/install_k3s.yml"
+      tags: always
     - name: Init first server node
       import_tasks: "./tasks/first_server_node.yml"
       tags: first_server_node
