@@ -1,9 +1,8 @@
 ---
 - name: Init first server node
-  when: inventory_hostname == (groups['master'] | first)
   block:
     - name: Copy K3s service file [Single]
-      when: groups['master'] | length == 1 or use_external_database
+      when: use_external_database
       ansible.builtin.template:
         src: "k3s-single.service.j2"
         dest: "{{ systemd_dir }}/k3s.service"
@@ -14,7 +13,6 @@
 
     - name: Copy K3s service file [HA]
       when:
-        - groups['master'] | length > 1
         - not use_external_database
       ansible.builtin.template:
         src: "k3s-cluster-init.service.j2"
@@ -50,17 +48,8 @@
         enabled: true
 
     - name: Pause to allow first server startup
-      when: (groups['master'] | length) > 1
       ansible.builtin.pause:
         seconds: 10
-
-    - name: Check whether kubectl is installed on control node
-      ansible.builtin.command: 'kubectl'
-      register: kubectl_installed
-      ignore_errors: true
-      delegate_to: 127.0.0.1
-      become: false
-      changed_when: false
 
     # Copy the k3s config to a second file to detect changes.
     # If no changes are found, we can skip copying the kubeconfig to the control node.

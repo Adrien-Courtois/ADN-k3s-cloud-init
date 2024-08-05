@@ -1,11 +1,7 @@
 - name: Start other server if any and verify status
-  when:
-    - (groups["master"] | length) > 1
-    - inventory_hostname != (groups["master"][0] |first)
   block:
     - name: Copy K3s service file [HA]
       when:
-        - groups["master"] | length > 1
         - not use_external_database
       ansible.builtin.template:
         src: "k3s-ha.service.j2"
@@ -17,7 +13,6 @@
 
     - name: Copy K3s service file [External DB]
       when:
-        - groups["master"] | length > 1
         - use_external_database
       ansible.builtin.template:
         src: "k3s-single.service.j2"
@@ -46,7 +41,6 @@
         enabled: true
 
     - name: Verify that all server nodes joined
-      when: (groups["master"] | length) > 1
       ansible.builtin.command:
         cmd: >
           k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
