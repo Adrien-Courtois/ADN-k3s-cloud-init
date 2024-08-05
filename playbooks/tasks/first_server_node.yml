@@ -63,7 +63,6 @@
 
     - name: Apply K3S kubeconfig to control node
       when:
-        - kubectl_installed.rc == 0
         - copy_k3s_yaml_file.changed
       block:
         - name: Copy kubeconfig to control node

@@ -8,8 +8,8 @@ k3s_version: v1.30.2+k3s1
 token: "SECRET"
 # api_endpoint: is mandatory but specified in extra vars because we can't know it before (ex: using LB dns)
 # api_port: is mandatory but specified in extra vars because we can't know it before (ex: using LB dns)
-extra_server_args: "--node-external-ip {{ inventory_hostname }} --flannel-iface enp0s8 --node-taint CriticalAddonsOnly=true:NoExecute"
-extra_agent_args: "--node-external-ip {{ inventory_hostname }} --flannel-iface enp0s8"
+extra_server_args: "--node-external-ip {{ ansible_default_ipv4.address }} --flannel-iface enp0s8 --node-taint CriticalAddonsOnly=true:NoExecute"
+extra_agent_args: "--node-external-ip {{ ansible_default_ipv4.address }} --flannel-iface enp0s8"
 k3s_server_location: "/var/lib/rancher/k3s"
 systemd_dir: "/etc/systemd/system"  # noqa var-naming[no-role-prefix]
 kubeconfig: ~/.kube/config  # noqa var-naming[no-role-prefix]
