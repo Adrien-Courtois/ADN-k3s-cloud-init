@@ -1,0 +1,20 @@
+---
+k3s_version: v1.30.2+k3s1
+# The token should be a random string of reasonable length. You can generate
+# one with the following commands:
+# - openssl rand -base64 64
+# - pwgen -s 64 1
+# You can use ansible-vault to encrypt this value / keep it secret.
+token: "SECRET"
+api_endpoint: "${API_ENDPOINT}"
+api_port: 6443
+extra_server_args: "--node-external-ip {{ inventory_hostname }} --flannel-iface enp0s8 --node-taint CriticalAddonsOnly=true:NoExecute"
+extra_agent_args: "--node-external-ip {{ inventory_hostname }} --flannel-iface enp0s8"
+k3s_server_location: "/var/lib/rancher/k3s"
+systemd_dir: "/etc/systemd/system"  # noqa var-naming[no-role-prefix]
+kubeconfig: ~/.kube/config  # noqa var-naming[no-role-prefix]
+user_kubectl: true  # noqa var-naming[no-role-prefix]
+cluster_context: k3s-ansible  # noqa var-naming[no-role-prefix]
+server_group: server  # noqa var-naming[no-role-prefix]
+agent_group: agent  # noqa var-naming[no-role-prefix]
+use_external_database: false # noqa var-naming[no-role-prefix]

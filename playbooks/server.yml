@@ -1,0 +1,14 @@
+---
+- name: Setup server nodes
+  hosts: localhost
+  vars_files:
+    - "./vars/common.yml"
+  tasks:
+    - name: Install K3s
+      import_tasks: "./tasks/install_k3s.yml"
+    - name: Init first server node
+      import_tasks: "./tasks/first_server_node.yml"
+      tags: first_server_node
+    - name: Init other server node
+      import_tasks: "./tasks/other_server_node.yml"
+      tags: server_node

@@ -1,0 +1,84 @@
+---
+- name: Init first server node
+  when: inventory_hostname == (groups['master'] | first)
+  block:
+    - name: Copy K3s service file [Single]
+      when: groups['master'] | length == 1 or use_external_database
+      ansible.builtin.template:
+        src: "k3s-single.service.j2"
+        dest: "{{ systemd_dir }}/k3s.service"
+        owner: root
+        group: root
+        mode: "0644"
+      register: service_file_single
+
+    - name: Copy K3s service file [HA]
+      when:
+        - groups['master'] | length > 1
+        - not use_external_database
+      ansible.builtin.template:
+        src: "k3s-cluster-init.service.j2"
+        dest: "{{ systemd_dir }}/k3s.service"
+        owner: root
+        group: root
+        mode: "0644"
+      register: service_file_ha
+
+    - name: Add service environment variables
+      when: extra_service_envs is defined
+      ansible.builtin.lineinfile:
+        path: "{{ systemd_dir }}/k3s.service.env"
+        line: "{{ item }}"
+      with_items: "{{ extra_service_envs }}"
+
+    - name: Restart K3s service
+      when:
+        - ansible_facts.services['k3s.service'] is defined
+        - ansible_facts.services['k3s.service'].state == 'running'
+        - service_file_single.changed or service_file_ha.changed
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: restarted
+
+    - name: Enable and check K3s service
+      when: ansible_facts.services['k3s.service'] is not defined or ansible_facts.services['k3s.service'].state != 'running'
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+
+    - name: Pause to allow first server startup
+      when: (groups['master'] | length) > 1
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Check whether kubectl is installed on control node
+      ansible.builtin.command: 'kubectl'
+      register: kubectl_installed
+      ignore_errors: true
+      delegate_to: 127.0.0.1
+      become: false
+      changed_when: false
+
+    # Copy the k3s config to a second file to detect changes.
+    # If no changes are found, we can skip copying the kubeconfig to the control node.
+    - name: Copy k3s.yaml to second file
+      ansible.builtin.copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /etc/rancher/k3s/k3s-copy.yaml
+        mode: "0600"
+        remote_src: true
+      register: copy_k3s_yaml_file
+
+    - name: Apply K3S kubeconfig to control node
+      when:
+        - kubectl_installed.rc == 0
+        - copy_k3s_yaml_file.changed
+      block:
+        - name: Copy kubeconfig to control node
+          ansible.builtin.fetch:
+            src: /etc/rancher/k3s/k3s.yaml
+            dest: "{{ kubeconfig }}"
+            flat: true

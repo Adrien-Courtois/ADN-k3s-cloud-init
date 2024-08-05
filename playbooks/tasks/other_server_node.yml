@@ -1,0 +1,57 @@
+- name: Start other server if any and verify status
+  when:
+    - (groups["master"] | length) > 1
+    - inventory_hostname != (groups["master"][0] |first)
+  block:
+    - name: Copy K3s service file [HA]
+      when:
+        - groups["master"] | length > 1
+        - not use_external_database
+      ansible.builtin.template:
+        src: "k3s-ha.service.j2"
+        dest: "{{ systemd_dir }}/k3s.service"
+        owner: root
+        group: root
+        mode: "0644"
+      register: service_file_ha
+
+    - name: Copy K3s service file [External DB]
+      when:
+        - groups["master"] | length > 1
+        - use_external_database
+      ansible.builtin.template:
+        src: "k3s-single.service.j2"
+        dest: "{{ systemd_dir }}/k3s.service"
+        owner: root
+        group: root
+        mode: "0644"
+      register: service_file_external_db
+
+    - name: Restart K3s service
+      when:
+        - ansible_facts.services['k3s.service'] is defined
+        - ansible_facts.services['k3s.service'].state == 'running'
+        - service_file_ha.changed or service_file_external_db.changed
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: restarted
+
+    - name: Enable and check K3s service
+      when: ansible_facts.services['k3s.service'] is not defined or ansible_facts.services['k3s.service'].state != 'running'
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+
+    - name: Verify that all server nodes joined
+      when: (groups["master"] | length) > 1
+      ansible.builtin.command:
+        cmd: >
+          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (groups["master"] | length)
+      retries: 20
+      delay: 10
+      changed_when: false
