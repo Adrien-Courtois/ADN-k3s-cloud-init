@@ -13,7 +13,6 @@
     group: root
     mode: "0755"
 - name: Copy kube vip manifest
-  when: use_external_database
   ansible.builtin.template:
     src: "kube-vip-manifest.yaml.j2"
     dest: "/var/lib/rancher/k3s/server/manifests/kube-vip-manifest.yaml"
