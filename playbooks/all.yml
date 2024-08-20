@@ -1,0 +1,9 @@
+---
+- name: Setup k3s binary
+  hosts: localhost
+  vars_files:
+    - "./vars/common.yml"
+  tasks:
+    - name: Install K3s
+      import_tasks: "./tasks/install_k3s.yml"
+      tags: always

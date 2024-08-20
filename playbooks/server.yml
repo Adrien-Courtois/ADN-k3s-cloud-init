@@ -4,9 +4,11 @@
   vars_files:
     - "./vars/common.yml"
   tasks:
-    - name: Install K3s
-      import_tasks: "./tasks/install_k3s.yml"
-      tags: always
+    - name: Init kube-vip
+      import_tasks: "./tasks/kube_vip.yml"
+      tags: 
+      - first_server_node
+      - server_node
     - name: Init first server node
       import_tasks: "./tasks/first_server_node.yml"
       tags: first_server_node

@@ -5,11 +5,12 @@ k3s_version: v1.30.2+k3s1
 # - openssl rand -base64 64
 # - pwgen -s 64 1
 # You can use ansible-vault to encrypt this value / keep it secret.
-token: "SECRET"
+token: "6Poz80m/tONk7ImzBGFAjzCC5Ke1n0OVhMUcTNxjQzI="
+node_interface: "enp0s8"
 # api_endpoint: is mandatory but specified in extra vars because we can't know it before (ex: using LB dns)
 # api_port: is mandatory but specified in extra vars because we can't know it before (ex: using LB dns)
-extra_server_args: "--tls-san {{ ansible_all_ipv4_addresses[1] }} --node-external-ip {{ ansible_all_ipv4_addresses[1] }} --flannel-iface enp0s8 --node-taint CriticalAddonsOnly=true:NoExecute"
-extra_agent_args: "--node-external-ip {{ ansible_all_ipv4_addresses[1] }} --flannel-iface enp0s8"
+extra_server_args: "--tls-san {{ api_endpoint }} --node-external-ip {{ ansible_all_ipv4_addresses[1] }} --flannel-iface {{ node_interface }} --node-taint CriticalAddonsOnly=true:NoExecute"
+extra_agent_args: "--node-external-ip {{ ansible_all_ipv4_addresses[1] }} --flannel-iface {{ node_interface }}"
 k3s_server_location: "/var/lib/rancher/k3s"
 systemd_dir: "/etc/systemd/system"  # noqa var-naming[no-role-prefix]
 kubeconfig: ~/.kube/config  # noqa var-naming[no-role-prefix]

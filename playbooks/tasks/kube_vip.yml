@@ -1,0 +1,22 @@
+---
+- name: Create manifest directory
+  ansible.builtin.file:
+    path: /var/lib/rancher/k3s/server/manifests/
+    state: directory
+    mode: '0755'
+- name: Download kube-vip RBAC Manifest
+  ansible.builtin.get_url:
+    url: https://kube-vip.io/manifests/rbac.yaml
+    timeout: 120
+    dest: /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
+    owner: root
+    group: root
+    mode: "0755"
+- name: Copy kube vip manifest
+  when: use_external_database
+  ansible.builtin.template:
+    src: "kube-vip-manifest.yaml.j2"
+    dest: "/var/lib/rancher/k3s/server/manifests/kube-vip-manifest.yaml"
+    owner: root
+    group: root
+    mode: "0755"
